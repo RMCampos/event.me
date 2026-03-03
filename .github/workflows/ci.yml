@@ -23,24 +23,26 @@ jobs:
     name: Build
     runs-on: self-hosted
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 55010:5432
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: |
+          docker run -d \
+            --name postgres-build-${{ github.run_id }} \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=test \
+            -p 55010:5432 \
+            --health-cmd pg_isready \
+            --health-interval 10s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            postgres:16-alpine
+          
+          echo "Waiting for PostgreSQL to be ready..."
+          timeout 60 bash -c 'until docker exec postgres-build-${{ github.run_id }} pg_isready -U postgres; do sleep 2; done'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -61,6 +63,12 @@ jobs:
 
       - name: Build application
         run: npm run build
+
+      - name: Cleanup PostgreSQL
+        if: always()
+        run: |
+          docker stop postgres-build-${{ github.run_id }} || true
+          docker rm postgres-build-${{ github.run_id }} || true
 
   lint:
     name: Lint
@@ -84,24 +92,26 @@ jobs:
     runs-on: self-hosted
     needs: [lint, build]
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 55011:5432
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: |
+          docker run -d \
+            --name postgres-e2e-${{ github.run_id }} \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=test \
+            -p 55011:5432 \
+            --health-cmd pg_isready \
+            --health-interval 10s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            postgres:16-alpine
+          
+          echo "Waiting for PostgreSQL to be ready..."
+          timeout 60 bash -c 'until docker exec postgres-e2e-${{ github.run_id }} pg_isready -U postgres; do sleep 2; done'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -125,6 +135,8 @@ jobs:
 
       - name: Run Playwright tests
         run: npm test
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:55011/test?schema=public"
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
@@ -141,3 +153,9 @@ jobs:
           name: test-results
           path: test-results/
           retention-days: 7
+
+      - name: Cleanup PostgreSQL
+        if: always()
+        run: |
+          docker stop postgres-e2e-${{ github.run_id }} || true
+          docker rm postgres-e2e-${{ github.run_id }} || true
