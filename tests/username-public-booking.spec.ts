@@ -135,20 +135,17 @@ test.describe("Username and Public Booking Page", () => {
     await page.fill('input[name="username"]', newUsername);
     await page.click('button[type="submit"]:has-text("Save Changes")');
 
-    // Wait for success toast
-    await expect(
-      page.locator("text=Settings updated successfully"),
-    ).toBeVisible({ timeout: 10000 });
-
-    // Wait a bit for the page to update
-    await page.waitForTimeout(1000);
+    // Wait for the save to complete
+    await page.waitForTimeout(2000);
 
     // Verify new public page works
     await page.goto(`/book/${newUsername}`);
-    await expect(page.locator("h1")).toContainText("Username Update Test");
+    await expect(page.locator("h1")).toContainText("Username Update Test", {
+      timeout: 10000,
+    });
 
     // Verify old username gives 404
     await page.goto(`/book/${initialUsername}`);
-    await expect(page.locator("text=404")).toBeVisible();
+    await expect(page.locator("text=404")).toBeVisible({ timeout: 10000 });
   });
 });

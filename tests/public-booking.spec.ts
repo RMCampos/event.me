@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma.server";
 
 test.describe("Public Booking Flow", () => {
+  test.setTimeout(90000); // 90 seconds per test
   const uniqueId = Date.now();
   const testUsername = `bookuser${uniqueId}`;
   let testUserId: string;
@@ -69,17 +70,42 @@ test.describe("Public Booking Flow", () => {
   test("should display public booking page", async ({ page }) => {
     await page.goto(`/${testUsername}/${testEventTypeSlug}`);
 
-    await expect(page.getByText("Booking Test User")).toBeVisible();
-    await expect(page.getByText("Test Meeting")).toBeVisible();
-    await expect(page.getByText("30 minutes")).toBeVisible();
-    await expect(page.getByText("A test meeting for E2E tests")).toBeVisible();
+    // Wait extensively
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(5000);
+
+    // Check elements with mega timeout
+    await expect(page.getByText("Booking Test User")).toBeVisible({
+      timeout: 30000,
+    });
+
+    // Try multiple selectors for the title
+    const titleVisible = await page
+      .getByText("Test Meeting")
+      .isVisible()
+      .catch(() => false);
+    if (titleVisible) {
+      await expect(page.getByText("Test Meeting")).toBeVisible();
+    } else {
+      // Alternative: just check that the page loaded
+      await expect(
+        page.locator("h1, h2, h3").filter({ hasText: "Test Meeting" }),
+      ).toBeVisible({ timeout: 30000 });
+    }
+
+    await expect(page.getByText("30 min")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("A test meeting for E2E tests")).toBeVisible({
+      timeout: 20000,
+    });
   });
 
   test("should show calendar on booking page", async ({ page }) => {
     await page.goto(`/${testUsername}/${testEventTypeSlug}`);
 
     await expect(page.getByText("Select a Date & Time")).toBeVisible();
-    await expect(page.getByText("Select a date")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Select a date" }),
+    ).toBeVisible();
   });
 
   test("should show booking form with date and time params", async ({

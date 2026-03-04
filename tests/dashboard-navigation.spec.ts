@@ -28,35 +28,35 @@ test.describe("Dashboard Navigation", () => {
     await page.click('a[href="/dashboard"]');
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("heading", { name: /dashboard/i }),
+      page.getByRole("heading", { name: "Dashboard", exact: true }),
     ).toBeVisible();
 
     // Test Event Types link
     await page.click('a[href="/dashboard/event-types"]');
     await expect(page).toHaveURL(/\/dashboard\/event-types/);
     await expect(
-      page.getByRole("heading", { name: /event types/i }),
+      page.getByRole("heading", { name: "Event Types", exact: true }),
     ).toBeVisible();
 
     // Test Bookings link
     await page.click('a[href="/dashboard/bookings"]');
     await expect(page).toHaveURL(/\/dashboard\/bookings/);
     await expect(
-      page.getByRole("heading", { name: /bookings/i }),
+      page.getByRole("heading", { name: "Bookings", exact: true }),
     ).toBeVisible();
 
     // Test Availability link
     await page.click('a[href="/dashboard/availability"]');
     await expect(page).toHaveURL(/\/dashboard\/availability/);
     await expect(
-      page.getByRole("heading", { name: /availability/i }),
+      page.getByRole("heading", { name: "Availability", exact: true }),
     ).toBeVisible();
 
     // Test Settings link
     await page.click('a[href="/dashboard/settings"]');
     await expect(page).toHaveURL(/\/dashboard\/settings/);
     await expect(
-      page.getByRole("heading", { name: /settings/i }),
+      page.getByRole("heading", { name: "Settings", exact: true }),
     ).toBeVisible();
   });
 
@@ -68,35 +68,62 @@ test.describe("Dashboard Navigation", () => {
 
     // Open mobile menu
     await page.click('button[aria-label="Toggle menu"]');
-    await expect(page.getByText("Dashboard")).toBeVisible();
-    await expect(page.getByText("Event Types")).toBeVisible();
-    await expect(page.getByText("Bookings")).toBeVisible();
-    await expect(page.getByText("Availability")).toBeVisible();
-    await expect(page.getByText("Settings")).toBeVisible();
+
+    // Wait for menu to be visible
+    await page.waitForSelector('a[href="/dashboard"].block', {
+      state: "visible",
+    });
+
+    // Verify all menu items are visible
+    await expect(page.locator('a[href="/dashboard"].block')).toBeVisible();
+    await expect(
+      page.locator('a[href="/dashboard/event-types"].block'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a[href="/dashboard/bookings"].block'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a[href="/dashboard/availability"].block'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a[href="/dashboard/settings"].block'),
+    ).toBeVisible();
 
     // Test Dashboard link
-    await page.getByRole("link", { name: "Dashboard" }).click();
+    await page.locator('a[href="/dashboard"].block').click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
     // Open mobile menu again
     await page.click('button[aria-label="Toggle menu"]');
+    await page.waitForSelector('a[href="/dashboard/event-types"].block', {
+      state: "visible",
+      timeout: 10000,
+    });
 
     // Test Event Types link
-    await page.getByRole("link", { name: "Event Types" }).click();
+    await page.locator('a[href="/dashboard/event-types"].block').click();
     await expect(page).toHaveURL(/\/dashboard\/event-types/);
 
     // Open mobile menu again
     await page.click('button[aria-label="Toggle menu"]');
+    await page.waitForSelector('a[href="/dashboard/bookings"].block', {
+      state: "visible",
+      timeout: 10000,
+    });
 
     // Test Bookings link
-    await page.getByRole("link", { name: "Bookings" }).click();
+    await page.locator('a[href="/dashboard/bookings"].block').click();
     await expect(page).toHaveURL(/\/dashboard\/bookings/);
 
     // Open mobile menu again
     await page.click('button[aria-label="Toggle menu"]');
+    await page.waitForSelector('a[href="/dashboard/availability"].block', {
+      state: "visible",
+      timeout: 10000,
+    });
 
     // Test Availability link
-    await page.getByRole("link", { name: "Availability" }).click();
+    await page.locator('a[href="/dashboard/availability"].block').click();
     await expect(page).toHaveURL(/\/dashboard\/availability/);
 
     // Open mobile menu again
@@ -113,7 +140,7 @@ test.describe("Dashboard Navigation", () => {
 
     // Open mobile menu
     await page.click('button[aria-label="Toggle menu"]');
-    await expect(page.getByText("Dashboard")).toBeVisible();
+    await expect(page.locator('a[href="/dashboard"].block')).toBeVisible();
 
     // Click outside (on main content)
     await page.click("main");
@@ -128,21 +155,23 @@ test.describe("Dashboard Navigation", () => {
 
     // Open mobile menu
     await page.click('button[aria-label="Toggle menu"]');
-    await expect(page.getByText("Dashboard")).toBeVisible();
+    await expect(page.locator('a[href="/dashboard"].block')).toBeVisible();
 
     // Press Escape
     await page.keyboard.press("Escape");
 
     // Menu should be closed
-    await expect(page.getByText("Dashboard")).not.toBeVisible();
+    await expect(page.locator('a[href="/dashboard"].block')).not.toBeVisible();
   });
 
   test("should display user info in desktop header", async ({ page }) => {
     await page.goto("/dashboard");
 
-    // Check if user name and email are visible
-    await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("alice@example.com")).toBeVisible();
+    // Check if user name and email are visible in the top navigation bar
+    await expect(page.locator("nav").getByText("Alice").first()).toBeVisible();
+    await expect(
+      page.locator("nav").getByText("alice@example.com").first(),
+    ).toBeVisible();
   });
 
   test("should display user info in mobile menu", async ({ page }) => {
@@ -151,10 +180,14 @@ test.describe("Dashboard Navigation", () => {
 
     // Open mobile menu
     await page.click('button[aria-label="Toggle menu"]');
+    await page.waitForSelector('a[href="/dashboard"].block', {
+      state: "visible",
+    });
 
-    // Check if user name and email are visible
-    await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("alice@example.com")).toBeVisible();
+    // Check if user name and email are visible in mobile menu
+    const userSection = page.locator(".border-t");
+    await expect(userSection.getByText("Alice", { exact: true })).toBeVisible();
+    await expect(userSection.getByText("alice@example.com")).toBeVisible();
   });
 
   test("should sign out from desktop menu", async ({ page }) => {
@@ -184,7 +217,7 @@ test.describe("Dashboard Navigation", () => {
   test("should have Event.me logo and title", async ({ page }) => {
     await page.goto("/dashboard");
 
-    // Check for logo and title
-    await expect(page.getByText("Event.me")).toBeVisible();
+    // Check for logo and title - it exists in the page
+    await expect(page.getByText("Event.me").first()).toBeVisible();
   });
 });

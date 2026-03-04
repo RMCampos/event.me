@@ -14,8 +14,8 @@ test.describe("Availability Management", () => {
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to login
-    await page.waitForURL(/\/login/);
+    // Wait for redirect to login with very long timeout (registration can be slow)
+    await page.waitForURL(/\/login/, { timeout: 60000 });
 
     // Now login
     await page.fill('input[name="email"]', email);

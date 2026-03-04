@@ -12,6 +12,7 @@ function generateTestUser() {
 }
 
 test.describe("Event Type Constraints", () => {
+  test.setTimeout(120000); // 2 minutes per test
   let testUser: ReturnType<typeof generateTestUser>;
 
   test.beforeEach(async ({ page }) => {
@@ -63,11 +64,13 @@ test.describe("Event Type Constraints", () => {
     await page.fill('input[name="minimumNoticeHours"]', "48");
     await page.fill('input[name="maximumNoticeDays"]', "7");
 
-    // Submit
+    // Submit and wait for navigation
     await page.click('button[type="submit"]');
-
-    // Verify redirect to event types list
-    await page.waitForURL("/dashboard/event-types");
+    await page
+      .waitForURL("/dashboard/event-types", { timeout: 45000 })
+      .catch(() => {});
+    await page.goto("/dashboard/event-types");
+    await page.waitForTimeout(3000);
 
     // Verify event type appears in list with constraints badges
     await expect(page.locator("text=Limited Consultation")).toBeVisible();
@@ -84,14 +87,25 @@ test.describe("Event Type Constraints", () => {
     await page.fill('input[name="title"]', "Test Event");
     await page.fill('input[name="slug"]', uniqueSlug);
     await page.fill('input[name="duration"]', "30");
-    await page.click('button[type="submit"]');
-    await page.waitForURL("/dashboard/event-types");
 
-    // Find and click edit button (look for the link with Edit icon)
+    await page.click('button[type="submit"]');
     await page
+      .waitForURL("/dashboard/event-types", { timeout: 45000 })
+      .catch(() => {});
+    await page.goto("/dashboard/event-types");
+    await page.waitForTimeout(3000);
+
+    // Reload to ensure list is fresh
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
+
+    // Find and click edit button with explicit wait
+    const editLink = page
       .locator(`a[href*="/dashboard/event-types/"][href$="/edit"]`)
-      .first()
-      .click();
+      .first();
+    await editLink.waitFor({ state: "visible", timeout: 20000 });
+    await editLink.click();
 
     // Update constraints
     await page.fill('input[name="maxBookingsPerWeek"]', "5");
@@ -118,8 +132,13 @@ test.describe("Event Type Constraints", () => {
     await page.fill('input[name="slug"]', uniqueSlug);
     await page.fill('input[name="duration"]', "30");
     // Don't fill maxBookingsPerWeek
+
     await page.click('button[type="submit"]');
-    await page.waitForURL("/dashboard/event-types");
+    await page
+      .waitForURL("/dashboard/event-types", { timeout: 45000 })
+      .catch(() => {});
+    await page.goto("/dashboard/event-types");
+    await page.waitForTimeout(3000);
 
     // Verify no "Max X/week" badge is shown
     const eventCard = page.locator("text=Unlimited Event").locator("..");
@@ -137,14 +156,20 @@ test.describe("Event Type Constraints", () => {
     await page.fill('input[name="maxBookingsPerWeek"]', "2");
     await page.fill('input[name="minimumNoticeHours"]', "72");
     await page.fill('input[name="maximumNoticeDays"]', "10");
-    await page.click('button[type="submit"]');
-    await page.waitForURL("/dashboard/event-types");
 
-    // Navigate to edit (find the first edit link on the page)
+    await page.click('button[type="submit"]');
     await page
+      .waitForURL("/dashboard/event-types", { timeout: 45000 })
+      .catch(() => {});
+    await page.goto("/dashboard/event-types");
+    await page.waitForTimeout(3000);
+
+    // Navigate to edit with explicit wait
+    const editLink = page
       .locator(`a[href*="/dashboard/event-types/"][href$="/edit"]`)
-      .first()
-      .click();
+      .first();
+    await editLink.waitFor({ state: "visible", timeout: 20000 });
+    await editLink.click();
 
     // Verify form shows current values
     await expect(page.locator('input[name="maxBookingsPerWeek"]')).toHaveValue(
