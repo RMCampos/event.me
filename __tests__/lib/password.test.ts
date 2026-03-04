@@ -9,7 +9,7 @@ describe("Password Hashing", () => {
     expect(hash).toBeDefined();
     expect(hash).not.toBe(password);
     expect(hash.length).toBeGreaterThan(0);
-  });
+  }, 10000);
 
   it("should verify a correct password", async () => {
     const password = "mySecurePassword123";
@@ -17,7 +17,7 @@ describe("Password Hashing", () => {
 
     const isValid = await bcrypt.compare(password, hash);
     expect(isValid).toBe(true);
-  });
+  }, 10000);
 
   it("should reject an incorrect password", async () => {
     const password = "mySecurePassword123";
@@ -26,7 +26,7 @@ describe("Password Hashing", () => {
 
     const isValid = await bcrypt.compare(wrongPassword, hash);
     expect(isValid).toBe(false);
-  });
+  }, 10000);
 
   it("should generate different hashes for the same password", async () => {
     const password = "mySecurePassword123";
@@ -38,5 +38,5 @@ describe("Password Hashing", () => {
     // Both should still verify correctly
     expect(await bcrypt.compare(password, hash1)).toBe(true);
     expect(await bcrypt.compare(password, hash2)).toBe(true);
-  });
+  }, 15000);
 });

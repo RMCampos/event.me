@@ -38,7 +38,7 @@ jobs:
             -e POSTGRES_USER=postgres \
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_DB=test \
-            -p $POSTGRES_PORT:5432 \
+            -p 127.0.0.1:$POSTGRES_PORT:5432 \
             --health-cmd pg_isready \
             --health-interval 10s \
             --health-timeout 5s \
@@ -47,6 +47,9 @@ jobs:
           
           echo "Waiting for PostgreSQL to be ready..."
           timeout 60 bash -c "until docker exec postgres-build-${{ github.run_id }} pg_isready -U postgres; do sleep 2; done"
+          
+          echo "Testing connection..."
+          docker exec postgres-build-${{ github.run_id }} pg_isready -U postgres
           
           # Exporta a porta para os próximos steps
           echo "POSTGRES_PORT=$POSTGRES_PORT" >> $GITHUB_ENV
@@ -137,7 +140,7 @@ jobs:
             -e POSTGRES_USER=postgres \
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_DB=test \
-            -p $POSTGRES_PORT:5432 \
+            -p 127.0.0.1:$POSTGRES_PORT:5432 \
             --health-cmd pg_isready \
             --health-interval 10s \
             --health-timeout 5s \
@@ -146,6 +149,9 @@ jobs:
           
           echo "Waiting for PostgreSQL to be ready..."
           timeout 60 bash -c "until docker exec postgres-e2e-${{ github.run_id }} pg_isready -U postgres; do sleep 2; done"
+          
+          echo "Testing connection..."
+          docker exec postgres-e2e-${{ github.run_id }} pg_isready -U postgres
           
           # Exporta a porta para os próximos steps
           echo "POSTGRES_PORT=$POSTGRES_PORT" >> $GITHUB_ENV
