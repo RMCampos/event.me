@@ -65,12 +65,14 @@ jobs:
 
       - name: Run database migrations
         run: |
-          export DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/test?schema=public"
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:$POSTGRES_PORT/test?schema=public"
           echo "DATABASE_URL=$DATABASE_URL"
           npx prisma db push
 
       - name: Build application
-        run: npm run build
+        run: |
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:$POSTGRES_PORT/test?schema=public"
+          npm run build
 
       - name: Cleanup PostgreSQL
         if: always()
@@ -94,10 +96,31 @@ jobs:
       - name: Run Biome
         run: biome ci .
 
+  unit:
+    name: Unit Tests (Vitest)
+    runs-on: self-hosted
+    needs: [lint]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
   e2e:
     name: E2E Tests (Playwright)
     runs-on: self-hosted
-    needs: [lint, build]
+    needs: [lint, build, unit]
 
     steps:
       - name: Checkout
@@ -144,15 +167,15 @@ jobs:
 
       - name: Run database migrations
         run: |
-          export DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:$POSTGRES_PORT/test?schema=public"
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:$POSTGRES_PORT/test?schema=public"
           echo "DATABASE_URL=$DATABASE_URL"
           npx prisma db push
 
       - name: Run Playwright tests
         run: |
-          export DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:$POSTGRES_PORT/test?schema=public"
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:$POSTGRES_PORT/test?schema=public"
           echo "DATABASE_URL=$DATABASE_URL"
-          npm test
+          npm run test:e2e
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
