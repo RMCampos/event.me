@@ -32,11 +32,12 @@ services:
       args:
         RESEND_APIKEY: ${RESEND_APIKEY}
     container_name: eventme-backend
+    image: ghcr.io/rmcampos/event.me:latest
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/eventme?schema=public
-      BUILD_VERSION: v1.0.0
+      BUILD_VERSION: v2026.03.05.7
       RESEND_APIKEY: ${RESEND_APIKEY}
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
@@ -44,6 +45,8 @@ services:
       AUTH_SECRET: ${NEXTAUTH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
     depends_on:
       postgres:
         condition: service_healthy

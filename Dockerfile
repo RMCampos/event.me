@@ -21,7 +21,17 @@ COPY --from=deps $DIR/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# 4. Production Stage (The "Runtime")
+# 4. Migrations Stage
+# Separate image used only by the init-db container to run `prisma db push`.
+# Has full node_modules so the Prisma CLI and all its dependencies are available.
+FROM base AS migrations
+ENV NODE_ENV=production
+COPY --from=deps $DIR/node_modules ./node_modules
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+CMD ["node", "node_modules/prisma/build/index.js", "db", "push"]
+
+# 5. Production Stage (The "Runtime") — must be last so it is the default build target
 # Uses the standalone output — only traced dependencies are included, not all of node_modules
 FROM node:22-slim AS production
 ARG BUILD_VERSION
@@ -46,13 +56,3 @@ USER node
 EXPOSE 3000
 
 CMD ["node", "server.js"]
-
-# 5. Migrations Stage
-# Separate image used only by the init-db container to run `prisma db push`.
-# Has full node_modules so the Prisma CLI and all its dependencies are available.
-FROM base AS migrations
-ENV NODE_ENV=production
-COPY --from=deps $DIR/node_modules ./node_modules
-COPY prisma ./prisma
-COPY prisma.config.ts ./
-CMD ["node", "node_modules/prisma/build/index.js", "db", "push"]

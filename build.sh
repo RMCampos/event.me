@@ -4,6 +4,7 @@ set -e
 # Production image — Next.js standalone output, minimal size
 docker build \
   --no-cache \
+  --target production \
   --build-arg RESEND_APIKEY=${RESEND_APIKEY} \
   -t ghcr.io/rmcampos/event.me:latest \
   .
