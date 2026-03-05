@@ -3,7 +3,7 @@ const http = require('http');
 const options = {
     host: 'localhost',
     port: 3000,
-    path: '/health', // Ensure this route exists in your NestJS controller
+    path: '/api/health',
     timeout: 2000
 };
 
