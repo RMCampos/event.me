@@ -42,11 +42,13 @@ services:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: "true"
       AUTH_SECRET: ${NEXTAUTH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       HOSTNAME: 0.0.0.0
       PORT: 3000
+      NODE_OPTIONS: --dns-result-order=ipv4first
     depends_on:
       postgres:
         condition: service_healthy
