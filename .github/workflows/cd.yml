@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/rmcampos/event.me
           tags: |
             type=raw,value=${{ steps.version.outputs.tag }}
             type=raw,value=latest,enable={{ is_default_branch }}
@@ -73,8 +73,8 @@ jobs:
           push: true
           target: migrations
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.tag }}-migrations
-            ghcr.io/${{ github.repository }}:latest-migrations
+            ghcr.io/rmcampos/event.me:${{ steps.version.outputs.tag }}-migrations
+            ghcr.io/rmcampos/event.me:latest-migrations
           provenance: false
           sbom: false
 
