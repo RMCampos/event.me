@@ -12,6 +12,7 @@ interface SettingsFormProps {
     name: string | null;
     email: string;
     timezone: string;
+    theme: string;
   };
   updateSettings: (
     prevState: any,
@@ -129,6 +130,20 @@ export function SettingsForm({ user, updateSettings }: SettingsFormProps) {
             <option value="Australia/Melbourne">Melbourne</option>
             <option value="Pacific/Auckland">Auckland</option>
           </optgroup>
+        </select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="theme">Theme</Label>
+        <select
+          id="theme"
+          name="theme"
+          defaultValue={user?.theme || "light"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          disabled={isPending}
+        >
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
         </select>
       </div>
 
