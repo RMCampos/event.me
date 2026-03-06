@@ -200,8 +200,8 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value = "0.0.0.0"
           }
           env {
-            name  = "NODE_OPTIONS"
-            value = "--dns-result-order=ipv4first"
+            name  = "NODE_TLS_REJECT_UNAUTHORIZED"
+            value = "0"
           }
           env {
             name = "RESEND_APIKEY"
