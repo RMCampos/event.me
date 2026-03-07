@@ -1,4 +1,5 @@
 import { Calendar } from "lucide-react";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -54,6 +55,7 @@ async function createEventType(formData: FormData) {
     },
   });
 
+  revalidatePath("/dashboard/event-types");
   redirect("/dashboard/event-types");
 }
 

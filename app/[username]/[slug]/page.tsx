@@ -227,15 +227,15 @@ export default async function PublicBookingPage({
                   </div>
                   <div>
                     <CardTitle className="text-2xl">{user.name}</CardTitle>
-                    <CardDescription className="text-base">
+                    <h2 className="text-base text-muted-foreground">
                       {eventType.title}
-                    </CardDescription>
+                    </h2>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    {eventType.duration} minutes
+                    {eventType.duration} min
                   </div>
                 </div>
                 {eventType.description && (
