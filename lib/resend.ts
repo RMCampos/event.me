@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_APIKEY);
+// Initialize with a placeholder if not set to avoid potential build-time evaluation issues
+const resend = new Resend(process.env.RESEND_APIKEY || "re_placeholder");
 
 const EMAIL_FROM = "onboarding@resend.dev";
 

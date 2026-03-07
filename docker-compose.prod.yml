@@ -27,10 +27,6 @@ services:
     restart: on-failure
 
   backend:
-    build:
-      context: .
-      args:
-        RESEND_APIKEY: ${RESEND_APIKEY}
     container_name: eventme-backend
     image: ghcr.io/rmcampos/event.me:latest
     ports:
