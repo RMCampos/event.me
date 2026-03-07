@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ export default async function EditEventTypePage({
       },
     });
 
+    revalidatePath("/dashboard/event-types");
     redirect("/dashboard/event-types");
   }
 
