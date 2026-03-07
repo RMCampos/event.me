@@ -55,6 +55,7 @@ model User {
   image         String?
   username      String?        @unique
   timezone      String         @default("UTC")
+  theme         String         @default("light")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   

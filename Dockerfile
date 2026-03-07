@@ -15,8 +15,6 @@ RUN npm ci && npx prisma generate
 
 # 3. Builder Stage
 FROM base AS builder
-ARG RESEND_APIKEY
-ENV RESEND_APIKEY=${RESEND_APIKEY}
 COPY --from=deps $DIR/node_modules ./node_modules
 COPY . .
 RUN npm run build

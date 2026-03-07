@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import {
@@ -22,7 +23,13 @@ export default async function SettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { username: true, name: true, email: true, timezone: true },
+    select: {
+      username: true,
+      name: true,
+      email: true,
+      timezone: true,
+      theme: true,
+    },
   });
 
   if (!user) {
@@ -39,6 +46,7 @@ export default async function SettingsPage() {
     const username = formData.get("username") as string;
     const name = formData.get("name") as string;
     const timezone = formData.get("timezone") as string;
+    const theme = formData.get("theme") as string;
 
     // Check if username is already taken
     if (username) {
@@ -54,13 +62,24 @@ export default async function SettingsPage() {
       }
     }
 
+    const validatedTheme = theme === "dark" ? "dark" : "light";
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
         username: username || null,
         name,
         timezone,
+        theme: validatedTheme,
       },
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set("theme", validatedTheme, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+      httpOnly: true,
     });
 
     redirect("/dashboard/settings");
