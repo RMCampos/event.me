@@ -38,14 +38,14 @@ export async function GET(request: NextRequest) {
     // Parse date
     const date = parse(dateStr, "yyyy-MM-dd", new Date());
 
-    // Get existing bookings for this event type on this date
+    // Get existing bookings for this user on this date (across all event types)
     const startOfDate = startOfDay(date);
     const endOfDate = new Date(startOfDate);
     endOfDate.setDate(endOfDate.getDate() + 1);
 
     const existingBookings = await prisma.booking.findMany({
       where: {
-        eventTypeId: eventType.id,
+        userId: eventType.userId,
         startTime: {
           gte: startOfDate,
           lt: endOfDate,
