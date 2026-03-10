@@ -70,10 +70,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for conflicts
+    // Check for conflicts across all event types for this user
     const conflictingBooking = await prisma.booking.findFirst({
       where: {
-        eventTypeId,
+        userId: eventType.userId,
         status: {
           not: "cancelled",
         },
