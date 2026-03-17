@@ -26,7 +26,7 @@ export default async function BookingSuccessPage({
   const { guestName, guestEmail, startTime, meetLink } = params;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader className="text-center">
@@ -40,24 +40,28 @@ export default async function BookingSuccessPage({
           </CardHeader>
           <CardContent className="space-y-4">
             {guestName && (
-              <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <Mail className="w-5 h-5 text-gray-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
                 <div>
                   <p className="font-medium text-sm">Guest Details</p>
-                  <p className="text-sm text-gray-600">{guestName}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {guestName}
+                  </p>
                   {guestEmail && (
-                    <p className="text-sm text-gray-600">{guestEmail}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {guestEmail}
+                    </p>
                   )}
                 </div>
               </div>
             )}
 
             {startTime && (
-              <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-gray-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
                 <div>
                   <p className="font-medium text-sm">Meeting Time</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     <LocalTime isoString={startTime} />
                   </p>
                 </div>
@@ -65,17 +69,17 @@ export default async function BookingSuccessPage({
             )}
 
             {meetLink && (
-              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                <Video className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <Video className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-medium text-sm text-blue-900">
+                  <p className="font-medium text-sm text-blue-900 dark:text-blue-300">
                     Google Meet Link
                   </p>
                   <a
                     href={meetLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline break-all"
                   >
                     {meetLink}
                   </a>
@@ -84,7 +88,7 @@ export default async function BookingSuccessPage({
             )}
 
             <div className="pt-4 border-t">
-              <p className="text-sm text-gray-600 text-center mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
                 A calendar invite with the meeting details has been sent to your
                 email address.
               </p>

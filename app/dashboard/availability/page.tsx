@@ -91,7 +91,7 @@ export default async function AvailabilityPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Availability</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Set your available hours for each day of the week
         </p>
       </div>
@@ -110,7 +110,7 @@ export default async function AvailabilityPage() {
                   id="dayOfWeek"
                   name="dayOfWeek"
                   required
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border rounded-md border-input dark:bg-input/30 dark:text-foreground"
                 >
                   {DAYS_OF_WEEK.map((day) => (
                     <option key={day.value} value={day.value}>
@@ -156,7 +156,7 @@ export default async function AvailabilityPage() {
           </CardHeader>
           <CardContent>
             {availability.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                 No availability set yet. Add your first time slot!
               </p>
             ) : (
@@ -173,7 +173,7 @@ export default async function AvailabilityPage() {
                             ?.label
                         }
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {slot.startTime} - {slot.endTime}
                       </p>
                     </div>

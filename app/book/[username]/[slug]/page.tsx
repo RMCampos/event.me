@@ -65,7 +65,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
@@ -78,10 +78,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {user.name || user.username}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {user.username ? `@${user.username}` : user.email}
                 </p>
               </div>
@@ -93,7 +93,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
                   {eventType.description}
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500 ml-4">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 ml-4">
                 <Clock className="w-4 h-4" />
                 <span className="font-medium">{eventType.duration} min</span>
               </div>
