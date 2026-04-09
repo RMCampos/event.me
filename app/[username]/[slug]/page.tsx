@@ -23,6 +23,7 @@ type Props = {
   searchParams: Promise<{
     date?: string;
     time?: string;
+    error?: string;
   }>;
 };
 
@@ -35,6 +36,10 @@ async function createBooking(formData: FormData) {
   const guestNotes = formData.get("guestNotes") as string;
   const startTime = formData.get("startTime") as string;
   const duration = Number.parseInt(formData.get("duration") as string, 10);
+  const username = formData.get("username") as string;
+  const slug = formData.get("slug") as string;
+  const bookingDate = formData.get("bookingDate") as string;
+  const bookingTime = formData.get("bookingTime") as string;
 
   if (!eventTypeId || !guestName || !guestEmail || !startTime || !duration) {
     throw new Error("Missing required fields");
@@ -61,6 +66,20 @@ async function createBooking(formData: FormData) {
 
   if (!response.ok) {
     const error = await response.json();
+
+    if (
+      response.status === 403 &&
+      error.error === "Este endereço foi bloqueado pela política de No Show." &&
+      username &&
+      slug &&
+      bookingDate &&
+      bookingTime
+    ) {
+      redirect(
+        `/${username}/${slug}?date=${bookingDate}&time=${bookingTime}&error=no_show_blocked`,
+      );
+    }
+
     throw new Error(error.error || "Failed to create booking");
   }
 
@@ -72,7 +91,7 @@ export default async function PublicBookingPage({
   searchParams,
 }: Props) {
   const { username, slug } = await params;
-  const { date, time } = await searchParams;
+  const { date, time, error } = await searchParams;
 
   const user = await prisma.user.findUnique({
     where: { username },
@@ -168,6 +187,10 @@ export default async function PublicBookingPage({
                     name="eventTypeId"
                     value={eventType.id}
                   />
+                  <input type="hidden" name="username" value={username} />
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="bookingDate" value={date} />
+                  <input type="hidden" name="bookingTime" value={time} />
                   <input
                     type="hidden"
                     name="duration"
@@ -178,6 +201,12 @@ export default async function PublicBookingPage({
                     name="startTime"
                     value={`${date}T${time}:00`}
                   />
+
+                  {error === "no_show_blocked" && (
+                    <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      Este endereço foi bloqueado pela política de No Show.
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="guestName">Your Name *</Label>

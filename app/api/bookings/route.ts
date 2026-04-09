@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedGuestEmail = guestEmail.trim().toLowerCase();
+
     // Get event type
     const eventType = await prisma.eventType.findUnique({
       where: { id: eventTypeId },
@@ -68,6 +70,38 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    // Guests can be explicitly unblocked by the host in no-show policy exceptions.
+    const noShowException = await prisma.noShowPolicyException.findUnique({
+      where: {
+        userId_guestEmail: {
+          userId: eventType.userId,
+          guestEmail: normalizedGuestEmail,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!noShowException) {
+      const blockedByNoShow = await prisma.booking.findFirst({
+        where: {
+          userId: eventType.userId,
+          status: "no_show",
+          guestEmail: {
+            equals: normalizedGuestEmail,
+            mode: "insensitive",
+          },
+        },
+        select: { id: true },
+      });
+
+      if (blockedByNoShow) {
+        return NextResponse.json(
+          { error: "Este endereço foi bloqueado pela política de No Show." },
+          { status: 403 },
+        );
+      }
     }
 
     // Check for conflicts across all event types for this user

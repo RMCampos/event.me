@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,48 @@ import {
 import { prisma } from "@/lib/prisma.server";
 
 export default async function NoShowReportPage() {
+  async function unblockGuestEmail(formData: FormData) {
+    "use server";
+
+    const session = await auth();
+    if (!session?.user?.email) {
+      redirect("/login");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      redirect("/login");
+    }
+
+    const guestEmail = String(formData.get("guestEmail") || "")
+      .trim()
+      .toLowerCase();
+
+    if (!guestEmail) {
+      return;
+    }
+
+    await prisma.noShowPolicyException.upsert({
+      where: {
+        userId_guestEmail: {
+          userId: user.id,
+          guestEmail,
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        guestEmail,
+      },
+    });
+
+    revalidatePath("/dashboard/no-show-report");
+  }
+
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -65,6 +108,12 @@ export default async function NoShowReportPage() {
     (a, b) => b.count - a.count,
   );
 
+  const exceptions = await prisma.noShowPolicyException.findMany({
+    where: { userId: user.id },
+    select: { guestEmail: true },
+  });
+  const unblockedEmails = new Set(exceptions.map((entry) => entry.guestEmail));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -112,23 +161,51 @@ export default async function NoShowReportPage() {
                     <th className="text-right py-3 px-4 font-medium text-gray-700">
                       No Show Count
                     </th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-700">
+                      Policy
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.map((entry) => (
-                    <tr
-                      key={entry.email}
-                      className="border-b last:border-0 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4">{entry.name}</td>
-                      <td className="py-3 px-4 text-gray-600">{entry.email}</td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
-                          {entry.count}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {report.map((entry) => {
+                    const normalizedEmail = entry.email.toLowerCase();
+                    const isBlocked = !unblockedEmails.has(normalizedEmail);
+
+                    return (
+                      <tr
+                        key={entry.email}
+                        className="border-b last:border-0 hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-4">{entry.name}</td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {entry.email}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
+                            {entry.count}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          {isBlocked ? (
+                            <form action={unblockGuestEmail}>
+                              <input
+                                type="hidden"
+                                name="guestEmail"
+                                value={normalizedEmail}
+                              />
+                              <Button type="submit" variant="outline" size="sm">
+                                Unblock Email
+                              </Button>
+                            </form>
+                          ) : (
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold text-xs">
+                              Unblocked
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
