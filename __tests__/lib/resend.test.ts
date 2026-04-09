@@ -15,6 +15,7 @@ import {
   sendBookingCreatedEmail,
   sendBookingRescheduledEmail,
   sendBookingStatusChangedEmail,
+  sendNoShowPolicyBlockedEmail,
 } from "@/lib/resend";
 
 describe("Resend Email Notifications", () => {
@@ -114,6 +115,24 @@ describe("Resend Email Notifications", () => {
       expect(call.to).toBe("user@example.com");
       expect(call.subject).toContain("Confirmed");
       expect(call.html).toContain("confirmed");
+    });
+  });
+
+  describe("sendNoShowPolicyBlockedEmail", () => {
+    it("should send blocked policy email with justification link", async () => {
+      await sendNoShowPolicyBlockedEmail({
+        to: "guest@example.com",
+        hostName: "Host Name",
+        justificationUrl: "https://example.com/no-show-justification/token-123",
+      });
+
+      expect(mockSend).toHaveBeenCalledOnce();
+      const call = mockSend.mock.calls[0][0];
+      expect(call.from).toBe("onboarding@resend.dev");
+      expect(call.to).toBe("guest@example.com");
+      expect(call.subject).toContain("No Show policy");
+      expect(call.html).toContain("Submit your justification");
+      expect(call.html).toContain("token-123");
     });
   });
 });

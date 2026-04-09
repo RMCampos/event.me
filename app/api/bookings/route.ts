@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { addDays, addHours, isAfter, isBefore } from "date-fns";
 import { type NextRequest, NextResponse } from "next/server";
 import {
@@ -5,7 +6,10 @@ import {
   isGoogleCalendarConnected,
 } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma.server";
-import { sendBookingCreatedEmail } from "@/lib/resend";
+import {
+  sendBookingCreatedEmail,
+  sendNoShowPolicyBlockedEmail,
+} from "@/lib/resend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +38,7 @@ export async function POST(request: NextRequest) {
       where: { id: eventTypeId },
       include: {
         user: {
-          select: { timezone: true },
+          select: { timezone: true, name: true },
         },
       },
     });
@@ -97,8 +101,49 @@ export async function POST(request: NextRequest) {
       });
 
       if (blockedByNoShow) {
+        const token = randomUUID();
+
+        await prisma.noShowJustificationRequest.upsert({
+          where: {
+            userId_guestEmail: {
+              userId: eventType.userId,
+              guestEmail: normalizedGuestEmail,
+            },
+          },
+          update: {
+            guestName,
+            token,
+            status: "pending",
+            justificationText: null,
+            submittedAt: null,
+            reviewedAt: null,
+          },
+          create: {
+            userId: eventType.userId,
+            guestEmail: normalizedGuestEmail,
+            guestName,
+            token,
+            status: "pending",
+          },
+        });
+
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const justificationUrl = `${baseUrl}/no-show-justification/${token}`;
+
+        try {
+          await sendNoShowPolicyBlockedEmail({
+            to: normalizedGuestEmail,
+            hostName: eventType.user.name,
+            justificationUrl,
+          });
+        } catch (emailError) {
+          console.error("No-show policy email error:", emailError);
+        }
+
         return NextResponse.json(
-          { error: "Este endereço foi bloqueado pela política de No Show." },
+          {
+            error: "This email address has been blocked by the No Show policy.",
+          },
           { status: 403 },
         );
       }

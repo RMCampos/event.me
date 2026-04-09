@@ -69,7 +69,8 @@ async function createBooking(formData: FormData) {
 
     if (
       response.status === 403 &&
-      error.error === "Este endereço foi bloqueado pela política de No Show." &&
+      error.error ===
+        "This email address has been blocked by the No Show policy." &&
       username &&
       slug &&
       bookingDate &&
@@ -204,7 +205,7 @@ export default async function PublicBookingPage({
 
                   {error === "no_show_blocked" && (
                     <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                      Este endereço foi bloqueado pela política de No Show.
+                      This email address has been blocked by the No Show policy.
                     </div>
                   )}
 

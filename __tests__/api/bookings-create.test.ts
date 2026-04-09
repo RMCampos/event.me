@@ -8,6 +8,9 @@ vi.mock("@/lib/prisma.server", () => ({
     noShowPolicyException: {
       findUnique: vi.fn(),
     },
+    noShowJustificationRequest: {
+      upsert: vi.fn(),
+    },
     booking: {
       findFirst: vi.fn(),
       count: vi.fn(),
@@ -24,11 +27,13 @@ vi.mock("@/lib/google-calendar", () => ({
 
 vi.mock("@/lib/resend", () => ({
   sendBookingCreatedEmail: vi.fn().mockResolvedValue(undefined),
+  sendNoShowPolicyBlockedEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/bookings/route";
 import { prisma } from "@/lib/prisma.server";
+import { sendNoShowPolicyBlockedEmail } from "@/lib/resend";
 
 describe("Booking Creation API", () => {
   beforeEach(() => {
@@ -47,7 +52,7 @@ describe("Booking Creation API", () => {
         minimumNoticeHours: 1,
         maximumNoticeDays: 30,
         maxBookingsPerWeek: null,
-        user: { timezone: "UTC" },
+        user: { timezone: "UTC", name: "Host Test" },
       } as never,
     );
   });
@@ -82,9 +87,17 @@ describe("Booking Creation API", () => {
 
     expect(response.status).toBe(403);
     expect(data.error).toBe(
-      "Este endereço foi bloqueado pela política de No Show.",
+      "This email address has been blocked by the No Show policy.",
     );
     expect(prisma.booking.create).not.toHaveBeenCalled();
+    expect(
+      (prisma as any).noShowJustificationRequest.upsert,
+    ).toHaveBeenCalledOnce();
+    expect(sendNoShowPolicyBlockedEmail).toHaveBeenCalledWith({
+      to: "guest@example.com",
+      hostName: "Host Test",
+      justificationUrl: expect.stringContaining("/no-show-justification/"),
+    });
     expect(prisma.booking.findFirst).toHaveBeenCalledWith({
       where: {
         userId: "host-1",
