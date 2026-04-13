@@ -104,7 +104,7 @@ jobs:
             -var="google_client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             -var="resend_apikey=${{ secrets.RESEND_APIKEY }}" \
             -var="backend_image=${{ steps.deploy-vars.outputs.backend_image }}" \
-            -var="migrations_image=${{ steps.deploy-vars.outputs.frontend_image }}"
+            -var="migrations_image=${{ steps.deploy-vars.outputs.migrations_image }}"
           terraform show -json tfplan > tfplan.json
           if jq -e '.resource_changes | length == 0' tfplan.json >/dev/null; then
             echo "no_changes=true" >> "$GITHUB_OUTPUT"
