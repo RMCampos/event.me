@@ -58,7 +58,7 @@ jobs:
           echo "latest tag=$latest_tag_tmp"
           
           latest_backend_tag="$latest_tag_tmp"
-          latest_migrations_tag="$latest_tag_tmp-migrations"
+          latest_migrations_tag="$latest_tag_tmp"-migrations
 
           if [ -z "$backend_image" ]; then
             backend_image="ghcr.io/rmcampos/event.me:$latest_backend_tag"
