@@ -99,7 +99,7 @@ resource "kubernetes_persistent_volume_claim_v1" "eventme_db_data" {
   spec {
     access_modes = ["ReadWriteOnce"]
     resources {
-      requests  = {
+      requests = {
         storage = "1Gi"
       }
     }
@@ -188,9 +188,9 @@ resource "kubernetes_deployment_v1" "eventme_app" {
       metadata { labels = { app = "eventme-app" } }
       spec {
         init_container {
-          name        = "prisma-migrate"
-          image       = var.migrations_image
-          command     = ["node", "node_modules/prisma/build/index.js", "db", "push"]
+          name    = "prisma-migrate"
+          image   = var.migrations_image
+          command = ["node", "node_modules/prisma/build/index.js", "db", "push"]
           env {
             name  = "DATABASE_URL"
             value = "postgresql://${var.db_user}:${var.db_password}@eventme-db-svc:5432/${var.db_name}?schema=public"
@@ -312,11 +312,11 @@ resource "kubernetes_service_v1" "eventme_app_svc" {
   }
 }
 
-    # Unified Ingress for App and API
+# Unified Ingress for App and API
 resource "kubernetes_ingress_v1" "eventme_ingress" {
   metadata {
-    name        = "eventme-ingress"
-    namespace   = kubernetes_namespace_v1.eventme.metadata[0].name
+    name      = "eventme-ingress"
+    namespace = kubernetes_namespace_v1.eventme.metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class"    = "traefik"
       "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
@@ -331,7 +331,7 @@ resource "kubernetes_ingress_v1" "eventme_ingress" {
       host = "eventme.darkroasted.vps-kinghost.net"
       http {
         path {
-          path = "/"
+          path      = "/"
           path_type = "Prefix"
           backend {
             service {
