@@ -41,7 +41,13 @@ export default async function DashboardLayout({
                   <a href="/dashboard/bookings">Bookings</a>
                 </Button>
                 <Button variant="ghost" asChild>
+                  <a href="/dashboard/clients">Clients</a>
+                </Button>
+                <Button variant="ghost" asChild>
                   <a href="/dashboard/availability">Availability</a>
+                </Button>
+                <Button variant="ghost" asChild>
+                  <a href="/dashboard/no-show-report">No Show</a>
                 </Button>
                 <Button variant="ghost" asChild>
                   <a href="/dashboard/settings">Settings</a>

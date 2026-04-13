@@ -169,3 +169,26 @@ export async function sendBookingStatusChangedEmail(
     `,
   });
 }
+
+export async function sendNoShowPolicyBlockedEmail(params: {
+  to: string;
+  hostName?: string | null;
+  justificationUrl: string;
+}) {
+  const { to, hostName, justificationUrl } = params;
+  const safeHostName = hostName ? escapeHtml(hostName) : "the host";
+  const safeJustificationUrl = escapeHtml(justificationUrl);
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to,
+    subject: "Booking blocked by No Show policy",
+    html: `
+      <h2>Booking blocked by No Show policy</h2>
+      <p>Your new booking attempt was blocked due to our No Show policy.</p>
+      <p>If you want to request a review, submit your justification using the link below.</p>
+      <p><a href="${safeJustificationUrl}">Submit your justification</a></p>
+      <p>This request will be reviewed by ${safeHostName}.</p>
+    `,
+  });
+}

@@ -64,6 +64,8 @@ model User {
   availability  Availability[]
   eventTypes    EventType[]
   bookings      Booking[]
+  noShowPolicyExceptions NoShowPolicyException[]
+  noShowJustificationRequests NoShowJustificationRequest[]
 }
 
 model Availability {
@@ -120,4 +122,35 @@ model Booking {
   @@index([userId])
   @@index([eventTypeId])
   @@index([startTime])
+}
+
+model NoShowPolicyException {
+  id         String   @id @default(cuid())
+  userId     String
+  guestEmail String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, guestEmail])
+  @@index([userId])
+}
+
+model NoShowJustificationRequest {
+  id                String   @id @default(cuid())
+  userId            String
+  guestEmail        String
+  guestName         String
+  token             String   @unique
+  status            String   @default("pending") // pending, submitted, approved, rejected
+  justificationText String?
+  submittedAt       DateTime?
+  reviewedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, guestEmail])
+  @@index([userId])
+  @@index([status])
 }
