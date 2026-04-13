@@ -5,6 +5,18 @@ terraform {
       version = ">= 2.0.0" 
     }
   }
+
+  backend "s3" {
+    bucket                      = "eventme"
+    key                         = "kubernetes/terraform.tfstate"
+    region                      = "auto"
+    endpoints                   = { s3 = "https://d17eb09b6bce2f90e16e800bb2a6baf9.r2.cloudflarestorage.com" }
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
 }
 
 provider "kubernetes" {
@@ -69,13 +81,13 @@ resource "kubernetes_secret_v1" "eventme_secrets" {
   }
 
   data = {
-    postgres_user       = var.db_user
-    postgres_password   = var.db_password
-    postgres_db         = var.db_name
-    nextauth_secret     = var.nextauth_secret
+    postgres_user        = var.db_user
+    postgres_password    = var.db_password
+    postgres_db          = var.db_name
+    nextauth_secret      = var.nextauth_secret
     google_client_id     = var.google_client_id
     google_client_secret = var.google_client_secret
-    resend_apikey       = var.resend_apikey
+    resend_apikey        = var.resend_apikey
   }
 }
 
@@ -87,7 +99,7 @@ resource "kubernetes_persistent_volume_claim_v1" "eventme_db_data" {
   spec {
     access_modes = ["ReadWriteOnce"]
     resources {
-      requests = {
+      requests  = {
         storage = "1Gi"
       }
     }
@@ -117,7 +129,7 @@ resource "kubernetes_deployment_v1" "eventme_db" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "postgres_user"
+                key  = "postgres_user"
               }
             }
           }
@@ -126,7 +138,7 @@ resource "kubernetes_deployment_v1" "eventme_db" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "postgres_password"
+                key  = "postgres_password"
               }
             }
           }
@@ -135,7 +147,7 @@ resource "kubernetes_deployment_v1" "eventme_db" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "postgres_db"
+                key  = "postgres_db"
               }
             }
           }
@@ -180,7 +192,7 @@ resource "kubernetes_deployment_v1" "eventme_app" {
           image       = var.migrations_image
           command     = ["node", "node_modules/prisma/build/index.js", "db", "push"]
           env {
-            name = "DATABASE_URL"
+            name  = "DATABASE_URL"
             value = "postgresql://${var.db_user}:${var.db_password}@eventme-db-svc:5432/${var.db_name}?schema=public"
           }
         }
@@ -188,7 +200,7 @@ resource "kubernetes_deployment_v1" "eventme_app" {
           image = var.backend_image
           name  = "app"
           env {
-            name = "DATABASE_URL"
+            name  = "DATABASE_URL"
             value = "postgresql://${var.db_user}:${var.db_password}@eventme-db-svc:5432/${var.db_name}?schema=public"
           }
           env {
@@ -208,12 +220,12 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "resend_apikey"
+                key  = "resend_apikey"
               }
             }
           }
           env {
-            name = "NEXTAUTH_URL"
+            name  = "NEXTAUTH_URL"
             value = "https://eventme.darkroasted.vps-kinghost.net"
           }
           env {
@@ -221,12 +233,12 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "nextauth_secret"
+                key  = "nextauth_secret"
               }
             }
           }
           env {
-            name = "AUTH_URL"
+            name  = "AUTH_URL"
             value = "https://eventme.darkroasted.vps-kinghost.net"
           }
           env {
@@ -238,7 +250,7 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "nextauth_secret"
+                key  = "nextauth_secret"
               }
             }
           }
@@ -247,7 +259,7 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "google_client_id"
+                key  = "google_client_id"
               }
             }
           }
@@ -256,7 +268,7 @@ resource "kubernetes_deployment_v1" "eventme_app" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret_v1.eventme_secrets.metadata[0].name
-                key = "google_client_secret"
+                key  = "google_client_secret"
               }
             }
           }
@@ -294,7 +306,7 @@ resource "kubernetes_service_v1" "eventme_app_svc" {
   spec {
     selector = { app = "eventme-app" }
     port {
-      port = 3000
+      port        = 3000
       target_port = 3000
     }
   }
@@ -303,8 +315,8 @@ resource "kubernetes_service_v1" "eventme_app_svc" {
     # Unified Ingress for App and API
 resource "kubernetes_ingress_v1" "eventme_ingress" {
   metadata {
-    name      = "eventme-ingress"
-    namespace = kubernetes_namespace_v1.eventme.metadata[0].name
+    name        = "eventme-ingress"
+    namespace   = kubernetes_namespace_v1.eventme.metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class"    = "traefik"
       "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
