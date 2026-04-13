@@ -54,7 +54,8 @@ jobs:
           backend_image="${{ github.event.inputs.backend_image }}"
           migrations_image="${{ github.event.inputs.migrations_image }}"
 
-          latest_tag_tmp="$(git tag --list 'api-v*' | sort -V | tail -n1)"
+          latest_tag_tmp="$(git tag --list | sort -V | tail -n1)"
+          echo "latest tag=$latest_tag_tmp"
           
           latest_backend_tag="$latest_tag_tmp"
           latest_migrations_tag="$latest_tag_tmp-migrations"
@@ -67,10 +68,10 @@ jobs:
           fi
 
           echo "Resolved backend_image=$backend_image"
-          echo "Resolved frontend_image=$frontend_image"
+          echo "Resolved migrations_image=$migrations_image"
 
           echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
-          echo "frontend_image=$frontend_image" >> "$GITHUB_OUTPUT"
+          echo "migrations_image=$migrations_image" >> "$GITHUB_OUTPUT"
 
       - name: Terraform Fmt -check -diff
         working-directory: terraform
