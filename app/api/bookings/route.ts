@@ -324,25 +324,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-export async function GET() {
-  try {
-    const bookings = await prisma.booking.findMany({
-      include: {
-        eventType: true,
-        user: true,
-      },
-      orderBy: {
-        startTime: "desc",
-      },
-    });
-
-    return NextResponse.json(bookings);
-  } catch (error) {
-    console.error("Fetch bookings error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
-  }
-}

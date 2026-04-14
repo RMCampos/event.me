@@ -1,4 +1,5 @@
 import { Calendar, LogOut } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { DashboardMobileNav } from "@/components/dashboard-mobile-nav";
@@ -32,25 +33,25 @@ export default async function DashboardLayout({
               </div>
               <nav className="hidden md:flex gap-4">
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard">Dashboard</a>
+                  <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/event-types">Event Types</a>
+                  <Link href="/dashboard/event-types">Event Types</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/bookings">Bookings</a>
+                  <Link href="/dashboard/bookings">Bookings</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/clients">Clients</a>
+                  <Link href="/dashboard/clients">Clients</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/availability">Availability</a>
+                  <Link href="/dashboard/availability">Availability</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/no-show-report">No Show</a>
+                  <Link href="/dashboard/no-show-report">No Show</Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                  <a href="/dashboard/settings">Settings</a>
+                  <Link href="/dashboard/settings">Settings</Link>
                 </Button>
               </nav>
             </div>

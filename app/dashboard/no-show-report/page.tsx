@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,19 @@ import {
 } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma.server";
 
-export default async function NoShowReportPage() {
+type NoShowReportPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
+export default async function NoShowReportPage({
+  searchParams,
+}: NoShowReportPageProps) {
+  const params = await searchParams;
+  const currentPage = Number.parseInt(params.page || "1", 10);
+  const pageSize = 20;
+
   async function unblockGuestEmail(formData: FormData) {
     "use server";
 
@@ -219,8 +232,14 @@ export default async function NoShowReportPage() {
     }
   }
 
-  const report = Array.from(aggregated.values()).sort(
+  const fullReport = Array.from(aggregated.values()).sort(
     (a, b) => b.count - a.count,
+  );
+  const totalCount = fullReport.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const report = fullReport.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
   );
 
   const exceptions = await prisma.noShowPolicyException.findMany({
@@ -237,6 +256,7 @@ export default async function NoShowReportPage() {
       orderBy: {
         updatedAt: "desc",
       },
+      take: 50, // Limit to 50 most recent to save memory
     });
 
   return (
@@ -264,7 +284,7 @@ export default async function NoShowReportPage() {
           <CardDescription>
             {report.length === 0
               ? "No no-shows recorded yet."
-              : `${report.length} guest(s) with at least one no show`}
+              : `${totalCount} guest(s) with at least one no show`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -273,67 +293,99 @@ export default async function NoShowReportPage() {
               <p>No no-shows recorded yet.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
-                      Name
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
-                      Email
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-700">
-                      No Show Count
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-700">
-                      Policy
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.map((entry) => {
-                    const normalizedEmail = entry.email.toLowerCase();
-                    const isBlocked = !unblockedEmails.has(normalizedEmail);
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">
+                        Name
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">
+                        Email
+                      </th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">
+                        No Show Count
+                      </th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">
+                        Policy
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.map((entry) => {
+                      const normalizedEmail = entry.email.toLowerCase();
+                      const isBlocked = !unblockedEmails.has(normalizedEmail);
 
-                    return (
-                      <tr
-                        key={entry.email}
-                        className="border-b last:border-0 hover:bg-gray-50"
-                      >
-                        <td className="py-3 px-4">{entry.name}</td>
-                        <td className="py-3 px-4 text-gray-600">
-                          {entry.email}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
-                            {entry.count}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          {isBlocked ? (
-                            <form action={unblockGuestEmail}>
-                              <input
-                                type="hidden"
-                                name="guestEmail"
-                                value={normalizedEmail}
-                              />
-                              <Button type="submit" variant="outline" size="sm">
-                                Unblock Email
-                              </Button>
-                            </form>
-                          ) : (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold text-xs">
-                              Unblocked
+                      return (
+                        <tr
+                          key={entry.email}
+                          className="border-b last:border-0 hover:bg-gray-50"
+                        >
+                          <td className="py-3 px-4">{entry.name}</td>
+                          <td className="py-3 px-4 text-gray-600">
+                            {entry.email}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
+                              {entry.count}
                             </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            {isBlocked ? (
+                              <form action={unblockGuestEmail}>
+                                <input
+                                  type="hidden"
+                                  name="guestEmail"
+                                  value={normalizedEmail}
+                                />
+                                <Button
+                                  type="submit"
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Unblock Email
+                                </Button>
+                              </form>
+                            ) : (
+                              <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold text-xs">
+                                Unblocked
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {currentPage > 1 && (
+                    <Button variant="outline" asChild>
+                      <Link
+                        href={`/dashboard/no-show-report?page=${currentPage - 1}`}
+                      >
+                        Previous
+                      </Link>
+                    </Button>
+                  )}
+                  <div className="flex items-center px-4 text-sm font-medium">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  {currentPage < totalPages && (
+                    <Button variant="outline" asChild>
+                      <Link
+                        href={`/dashboard/no-show-report?page=${currentPage + 1}`}
+                      >
+                        Next
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
