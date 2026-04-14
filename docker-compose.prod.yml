@@ -4,8 +4,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: eventme-db
-    ports:
-      - "55002:5432"
+    ports: ["55002:5432"]
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -29,8 +28,7 @@ services:
   backend:
     container_name: eventme-backend
     image: ghcr.io/rmcampos/event.me:latest
-    ports:
-      - "3000:3000"
+    ports: ["3000:3000", "9229:9229"]
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/eventme?schema=public
       BUILD_VERSION: v2026.03.05.7
@@ -44,7 +42,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       HOSTNAME: 0.0.0.0
       PORT: 3000
-      NODE_OPTIONS: --network-family-autoselection-attempt-timeout=900
+      NODE_OPTIONS: "--network-family-autoselection-attempt-timeout=900 --inspect=0.0.0.0:9229"
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,3 +53,4 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+

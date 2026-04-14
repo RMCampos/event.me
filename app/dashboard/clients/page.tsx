@@ -23,6 +23,7 @@ type ClientsPageProps = {
   searchParams: Promise<{
     startDate?: string;
     endDate?: string;
+    page?: string;
   }>;
 };
 
@@ -76,6 +77,15 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     (accumulator, client) => accumulator + client.totalBookings,
     0,
   );
+
+  const currentPage = Number.parseInt(params.page || "1", 10);
+  const pageSize = 10;
+  const totalPages = Math.ceil(report.length / pageSize);
+  const paginatedReport = report.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const exportQuery = new URLSearchParams();
 
   if (dateRange.startDate) {
@@ -195,45 +205,87 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
-                      Name
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
-                      Email
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
-                      Event Breakdown
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-700">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.map((entry) => (
-                    <tr
-                      key={entry.email}
-                      className="border-b last:border-0 align-top hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 font-medium">{entry.name}</td>
-                      <td className="py-3 px-4 text-gray-600">{entry.email}</td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {formatClientEventSummary(entry)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
-                          {entry.totalBookings}
-                        </span>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">
+                        Name
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">
+                        Email
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">
+                        Event Breakdown
+                      </th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">
+                        Total
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedReport.map((entry) => (
+                      <tr
+                        key={entry.email}
+                        className="border-b last:border-0 align-top hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-4 font-medium">{entry.name}</td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {entry.email}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {formatClientEventSummary(entry)}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                            {entry.totalBookings}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {currentPage > 1 && (
+                    <Button variant="outline" asChild>
+                      <Link
+                        href={`/dashboard/clients?${new URLSearchParams({
+                          ...(params.startDate && {
+                            startDate: params.startDate,
+                          }),
+                          ...(params.endDate && { endDate: params.endDate }),
+                          page: String(currentPage - 1),
+                        }).toString()}`}
+                      >
+                        Previous
+                      </Link>
+                    </Button>
+                  )}
+                  <div className="flex items-center px-4 text-sm font-medium">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  {currentPage < totalPages && (
+                    <Button variant="outline" asChild>
+                      <Link
+                        href={`/dashboard/clients?${new URLSearchParams({
+                          ...(params.startDate && {
+                            startDate: params.startDate,
+                          }),
+                          ...(params.endDate && { endDate: params.endDate }),
+                          page: String(currentPage + 1),
+                        }).toString()}`}
+                      >
+                        Next
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

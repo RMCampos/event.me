@@ -9,7 +9,7 @@ export async function getGoogleCalendarClient(userId: string) {
     },
   });
 
-  if (!account || !account.access_token) {
+  if (!account?.access_token) {
     throw new Error("Google Calendar not connected");
   }
 

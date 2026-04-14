@@ -3,7 +3,7 @@
 import type { Booking, EventType } from "@prisma/client";
 import { format } from "date-fns";
 import { UserX, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,26 @@ interface BookingsTableProps {
 export function BookingsTable({
   bookings: initialBookings,
 }: BookingsTableProps) {
-  const [bookings, setBookings] = useState(initialBookings);
+  const [bookings, setBookings] = useState<
+    (Booking & { eventType: EventType })[] | null
+  >(initialBookings);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [markingNoShow, setMarkingNoShow] = useState<string | null>(null);
 
+  // Synchronize state when props change
+  useEffect(() => {
+    setBookings(initialBookings);
+  }, [initialBookings]);
+
+  // Help garbage collector by clearing state on unmount
+  useEffect(() => {
+    return () => {
+      setBookings(null);
+    };
+  }, []);
+
   const handleCancel = async (bookingId: string) => {
+    if (!bookings) return;
     setCancelling(bookingId);
 
     try {
@@ -50,6 +65,7 @@ export function BookingsTable({
   };
 
   const handleNoShow = async (bookingId: string) => {
+    if (!bookings) return;
     setMarkingNoShow(bookingId);
 
     try {
@@ -79,7 +95,7 @@ export function BookingsTable({
     }
   };
 
-  if (bookings.length === 0) {
+  if (!bookings || bookings.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
         <p>No bookings yet</p>
