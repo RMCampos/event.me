@@ -23,6 +23,7 @@ type ClientsPageProps = {
   searchParams: Promise<{
     startDate?: string;
     endDate?: string;
+    page?: string;
   }>;
 };
 
@@ -76,6 +77,15 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     (accumulator, client) => accumulator + client.totalBookings,
     0,
   );
+
+  const currentPage = Number.parseInt(params.page || "1", 10);
+  const pageSize = 10;
+  const totalPages = Math.ceil(report.length / pageSize);
+  const paginatedReport = report.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const exportQuery = new URLSearchParams();
 
   if (dateRange.startDate) {
@@ -215,7 +225,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {report.map((entry) => (
+                    {paginatedReport.map((entry) => (
                       <tr
                         key={entry.email}
                         className="border-b last:border-0 align-top hover:bg-gray-50"
