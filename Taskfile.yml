@@ -1,0 +1,17 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  prod-build:
+    desc: Build docker image locally
+    cmd: ./build.sh
+
+  prod-up:
+    desc: Speed up prod-like images for backend and migrations
+    cmd: docker compose -f docker-compose.prod.yml up -d
+
+  prod-down:
+    desc: Stop and remove running containers
+    cmd: docker compose -f docker-compose.prod.yml down -v --remove-orphans
+
